@@ -27,9 +27,7 @@
 ##### Algorithm Steps
 - At each step...
     1. Update responsibility 
-    ```math
-    r(i, k) \leftarrow s(i, k) - \underset{k' \text{s.t.} k' \neq k}{\max} \left\{ a(i, k') + s(i, k') \right\}
-    ```
+    <img src="https://latex.codecogs.com/png.latex?r(i,&space;k)&space;\leftarrow&space;s(i,&space;k)&space;-&space;\underset{k'&space;\text{s.t.}&space;k'&space;\neq&space;k}{\max}&space;\left\{&space;a(i,&space;k')&space;&plus;&space;s(i,&space;k')&space;\right\}">
     2. Update availability for $i \neq k$:
     ```math
     a(i, k) \leftarrow \min \left\{ 0, r(k, k) + \hspace{-15px} \sum\limits_{i' \text{s.t.} i' \not\in \{i, k\}} \hspace{-10px} \max \{0, r(i', k)\} \right\}
