@@ -1,4 +1,4 @@
-\.idea
+.*
 archive
 dist
 *.egg-info
