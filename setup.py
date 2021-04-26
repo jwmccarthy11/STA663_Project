@@ -6,7 +6,7 @@ ext_modules = cythonize("./src/aff_prop/aff_prop_c.pyx")
 
 setup(
     name="AffProp663",
-    version="0.5.1",
+    version="0.5.5",
     author="Michael Sarkis, Jack McCarthy",
     author_email="michael.sarkis@duke.edu, jack.mccarthy@duke.edu",
     description="Fast implementation of affinity propagation",
