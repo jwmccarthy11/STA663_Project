@@ -85,22 +85,68 @@ cpdef c_resp_sparse(int[:] indptr, double[:] data, double[:] s):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef c_aval_sparse(int[:] indptr, int[:] rowidx, double[:] data):
+cpdef c_aval_dense(double[:, :] r):
     """
     Cython accelerated sparse availability update.
     """
     cdef int i, j, k
-    cdef int idx_s, idx_e
+    cdef int n = r.shape[0]
+    cdef double col_sum
+    cdef double[:, :] aval = np.zeros_like(r)
+
+    for i in range(n):
+        col_sum = 0
+
+        # find sum of column values
+        for j in range(n):
+            if i == j:
+                col_sum += r[j, i]
+            else:
+                col_sum += max(0, r[j, i])
+
+        # compute availability given sums
+        for k in range(n):
+            if i == k:
+                aval[k, i] = (col_sum - r[k, i]) if r[k, i] > -INFINITY else -INFINITY
+            else:
+                aval[k, i] = min(0, col_sum - max(0, r[k, i]))
+
+    return np.array(aval)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef c_aval_sparse(int[:] indptr, int[:] rowidx, double[:] r):
+    """
+    Cython accelerated sparse availability update.
+    """
+    cdef int i, j, k
+    cdef int idx_s, idx_e, idx_c
     cdef int npr = indptr.shape[0]
-    cdef double[:] sums = np.zeros(npr-1)
-    cdef double[:] aval = np.zeros_like(data)
+    cdef double col_sum
+    cdef double[:] aval = np.zeros_like(r)
 
     # loop over indptr pairs
     for i in range(npr-1):
-        # find sum of column max values
-            # don't max diagonal elements w/ 0
-        # loop over column
-            # subtract cell value if not diagonal
-            # min cell value w/ 0
+        col_sum = 0
 
-        pass
+        idx_s = indptr[i]
+        idx_e = indptr[i+1]
+
+        # find sum of column values
+        for j in range(idx_s, idx_e):
+            idx_c = rowidx[j]
+            if idx_c == i:
+                col_sum += r[j]
+            else:
+                col_sum += max(0, r[j])
+
+        # compute availability given sums
+        for k in range(idx_s, idx_e):
+            idx_c = rowidx[k]
+            if idx_c == i:
+                aval[k] = (col_sum - r[k]) if r[k] > -INFINITY else -INFINITY
+            else:
+                aval[k] = min(0, col_sum - max(0, r[k]))
+
+    return np.array(aval)
