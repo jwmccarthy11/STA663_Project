@@ -1,13 +1,12 @@
 import time
 import numpy as np
-from aff_prop import resp_sparse, resp_dense
-from scipy.sparse import csr_matrix, coo_matrix
-
+from aff_prop import aff_prop
+from scipy.sparse import coo_matrix
 
 np.random.seed(1234)
 
-n = 5
-p = 0.5
+n = 5000
+p = 0.01
 
 # random dense data with negative inf values
 dense = np.random.rand(n, n) + np.random.choice([-np.inf, 0], size=(n, n), p=[1-p, p])
@@ -19,7 +18,8 @@ a = np.zeros_like(s)
 
 start = time.time()
 
-dense_out = resp_dense(r, s, a)
+r_dense = resp_dense(r, s, a)
+a_dense = aval_dense(r_dense, a)
 
 dense_time = time.time() - start
 
@@ -40,7 +40,8 @@ a.data = 0. * s.data
 
 start = time.time()
 
-sparse_out = resp_sparse(r, s, a)
+r_sparse = resp_sparse(r, s, a)
+a_sparse = aval_sparse(r_sparse, a)
 
 sparse_time = time.time() - start
 
@@ -56,9 +57,17 @@ print('\n-------------------------')
 print(' Updated responsibility')
 print('-------------------------\n')
 print('Full:\n')
-print(dense_out)
+print(r_dense)
 print('\nCSR:\n')
-print(sparse_out)
+print(r_sparse)
 
-print(dense_time)
-print(sparse_time)
+print('\n-------------------------')
+print(' Updated availability')
+print('-------------------------\n')
+print('Full:\n')
+print(a_dense)
+print('\nCSR:\n')
+print(a_sparse)
+
+print('\nDense Single Iteration Runtime (s):\n', dense_time)
+print('\nSparse Single Iteration Runtime (s):\n', sparse_time)
