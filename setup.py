@@ -2,13 +2,13 @@ from setuptools import find_packages, setup
 from Cython.Build import cythonize
 import numpy as np
 
-ext_modules = cythonize("./src/aff_prop/*.pyx")
+ext_modules = cythonize("./src/aff_prop/aff_prop_c.pyx")
 
 setup(
-    name="AffinityPropagation",
-    version="0.0.4",
+    name="AffProp663",
+    version="0.5.1",
     author="Michael Sarkis, Jack McCarthy",
-    author_email="jack.mccarthy@duke.edu",
+    author_email="michael.sarkis@duke.edu, jack.mccarthy@duke.edu",
     description="Fast implementation of affinity propagation",
     url="https://github.com/jwmccarthy11/STA663_Project",
     ext_modules=ext_modules,
