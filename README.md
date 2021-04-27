@@ -1,4 +1,4 @@
-### Affinity Propagation (aff_prop)
+# Affinity Propagation (aff_prop)
 
 This repository contains all code relevant to the development and distribution to the package "aff_prop", which implements the affinity propagation (AP) clustering algorithm.
 
