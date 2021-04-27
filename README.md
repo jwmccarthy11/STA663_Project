@@ -9,7 +9,7 @@ https://github.com/jwmccarthy11/STA663_Project
 ##### Contributions:
 
 Michael: 
-    - Main affinity propagation method
+- Main affinity propagation method
 - Report write-up
 - Cluster plotting method
 
