@@ -9,15 +9,16 @@ cdef extern from "math.h":
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef c_resp_dense(double[:, :] data, double[:, :] s):
+@cython.cdivision(True)
+cpdef c_resp_dense(
+    int n, double[:, ::1] data, double[:, ::1] s, double[:, ::1] resp, double lmb
+):
     """
     Cython accelerated dense responsibility update.
     """
     cdef int i, j, k
     cdef int idx_s, idx_e, idx_m
-    cdef int n = data.shape[0]
     cdef double max_1, max_2
-    cdef double[:, :] resp = np.zeros_like(data)
 
     for i in range(n):
         # reset max values
@@ -36,24 +37,23 @@ cpdef c_resp_dense(double[:, :] data, double[:, :] s):
         for k in range(n):
             if k != idx_m:
                 # account for rows with only -inf values
-                resp[i, k] = s[i, k] - max_1 if max_1 > -INFINITY else -INFINITY
+                resp[i, k] = (s[i, k] - max_1) * (1 - lmb) + resp[i, k] * lmb
             else:
                 # account for rows with only one val != -inf
-                resp[i, k] = s[i, k] - max_2 if max_2 > -INFINITY else -INFINITY
-
-    return np.array(resp)
+                resp[i, k] = (s[i, k] - max_2) * (1 - lmb) + resp[i, k] * lmb
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef c_aval_dense(double[:, :] r):
+@cython.cdivision(True)
+cpdef c_aval_dense(
+    int n, double[:, ::1] r, double[:, ::1] aval, double lmb
+):
     """
     Cython accelerated sparse availability update.
     """
     cdef int i, j, k
-    cdef int n = r.shape[0]
     cdef double col_sum
-    cdef double[:, :] aval = np.zeros_like(r)
 
     for i in range(n):
         col_sum = 0
@@ -68,8 +68,7 @@ cpdef c_aval_dense(double[:, :] r):
         # compute availability given sums
         for k in range(n):
             if i == k:
-                aval[k, i] = (col_sum - r[k, i]) if r[k, i] > -INFINITY else -INFINITY
+                aval[k, i] = (col_sum - r[k, i]) * (1 - lmb) + aval[k, i] * lmb
             else:
-                aval[k, i] = min(0, col_sum - max(0, r[k, i]))
-
-    return np.array(aval)
+                aval[k, i] *= lmb
+                aval[k, i] += min(0, col_sum - max(0, r[k, i])) * (1 - lmb)

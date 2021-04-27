@@ -1,22 +1,24 @@
 import numpy as np
-from scipy.sparse import coo_matrix, csr_matrix, csc_matrix
-from . import aff_prop_c
+import matplotlib.pyplot as plt
+import aff_prop.aff_prop_c as apc
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 
 def resp_dense(r, s, a, lmb=0.5):
     """
     Compute updated dense responsibility matrix.
     """
-    temp = aff_prop_c.c_resp_dense(np.add(a, s), s)
-    return r * lmb + (1 - lmb) * temp
+    apc.c_resp_dense(r.shape[0], np.add(a, s), s, r, lmb)
+    return r
 
 
 def aval_dense(r, a, lmb=0.5):
     """
     Compute updated dense availability matrix
     """
-    temp = aff_prop_c.c_aval_dense(r)
-    return a * lmb + (1 - lmb) * temp
+    apc.c_aval_dense(r.shape[0], r, a, lmb)
+    return a
 
 
 def affinity_propagation(s, max_iter=100, max_conv_iter=10, tol=1e-6, lmb=0.5):
@@ -37,25 +39,24 @@ def affinity_propagation(s, max_iter=100, max_conv_iter=10, tol=1e-6, lmb=0.5):
         evidence (np.ndarray) : total evidence for exemplars
         i (int) : number of iterations run
     """
+    if s.shape[0] != s.shape[1]:
+        raise ValueError('Similarity matrix s is not square')
+
     n = s.shape[0]
     stop = max_conv_iter
 
     # initialize relevant matrices
     if not isinstance(s, np.ndarray):
         raise TypeError('Similarity matrix s is not numpy/scipy.sparse matrix')
+
     resp = np.zeros_like(s)
     aval = np.zeros_like(s)
     exem = np.zeros(n, dtype=int)
 
     for i in range(max_iter):
-        old_message = resp + aval
         resp = resp_dense(resp, s, aval, lmb)
         aval = aval_dense(resp, aval, lmb)
         evidence = resp + aval
-
-        # tolerance stopping condition
-        if np.all(np.abs(old_message - evidence) < tol):
-            break
 
         # find exemplars and stop if the same max_conv_iter times
         exem_new = evidence.argmax(axis=1)
@@ -86,9 +87,11 @@ def plot_affinity_clusters(X, exemplars, labels, param_x=0, param_y=1, pca_axes=
         param_y (int) : the column index of the paramater used as the Y value
         pca_axes (bool) : option to use first and second principal components as axes
     """
+    # create pca axes
     if pca_axes:
         X_new = StandardScaler().fit_transform(X)
-        pca = PCA(n_components=2)
-        X = pca.fit_transform(X_new)
+        X = PCA(n_components=2).fit_transform(X_new)
+
+    # create plot
     plt.scatter(X[:, param_x], X[:, param_y], c=labels, cmap="viridis")
     plt.scatter(X[exemplars, param_x], X[exemplars, param_y], c="red")
