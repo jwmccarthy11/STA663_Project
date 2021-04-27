@@ -20,8 +20,6 @@ Jack:
 
 ##### Installation:
 
-This package, dubbed <a href="https://test.pypi.org/project/aff-prop/">"aff_prop"</a>, is available on the TestPyPi platform for installation via pip. To install...
-
 1. Ensure <a href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">C++ Build Tools 14</a> or greater is installed on your system.
 
 
